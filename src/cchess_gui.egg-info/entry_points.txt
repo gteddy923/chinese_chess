@@ -1,0 +1,2 @@
+[console_scripts]
+cchess = cchess_app.app:main

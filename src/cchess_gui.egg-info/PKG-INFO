@@ -1,0 +1,97 @@
+Metadata-Version: 2.4
+Name: cchess-gui
+Version: 0.1.0
+Summary: Chinese Chess (Xiangqi) GUI with optional AI and voice input
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: ai
+Requires-Dist: numpy>=1.24.0; extra == "ai"
+Provides-Extra: voice
+Requires-Dist: SpeechRecognition>=3.10.0; extra == "voice"
+
+# CChess (Chinese Chess) GUI
+
+This project is a modularized packaging of the original `cchess.py` into a standalone Python project. It provides a Turtle/Tkinter Chinese chess (Xiangqi) GUI with optional AI opponent and voice move input.
+
+## Features
+- Interactive Xiangqi board with legal move enforcement
+- Move list display and replay from a text-based game record
+- Human vs AI play using `XQlightPy`
+- Optional voice input for moves (SpeechRecognition)
+
+## Tech Stack
+- Python 3.9+ (3.10+ recommended)
+- Turtle + Tkinter for GUI rendering and UI widgets
+- Optional: `numpy` for AI search
+- Optional: `SpeechRecognition` (plus a microphone backend like `pyaudio`) for voice input
+
+## Architecture
+- `config.py` centralizes tunable board + AI settings.
+- `state.py` owns app state containers (`GameState`, `UIState`) and the `CChessApp` lifecycle.
+- `actions.py` holds game actions, move list interactions, and click handling.
+- `ui_board.py` draws the board and command buttons.
+- `ui_controls.py` builds the Tk controls and move list panes.
+- `pieces.py` implements piece behavior, rules, and board initialization.
+- `dependencies.py` isolates optional AI/voice imports so the app can degrade gracefully.
+- `game.py` remains the compatibility facade and entry-point re-exports.
+
+## Dataflow
+1. `CChessApp.run()` wires the board, controls, and move lists, then registers click handlers.
+2. User input events call `actions.click_move()` which updates `GameState`, board pieces, and move history.
+3. Move history updates are reflected in the move list UI via `actions.display_moves()`.
+4. If AI is enabled, the user move is pushed into the AI engine and `AIEngine.make_move()` generates the reply.
+5. Voice input (if enabled) maps spoken moves into the same `actions.dapu_move()` flow.
+
+## Project Layout
+- `src/cchess_app/config.py`: board/AI configuration dataclasses
+- `src/cchess_app/state.py`: app state containers + lifecycle
+- `src/cchess_app/actions.py`: actions, move list logic, click handling
+- `src/cchess_app/ui_board.py`: board + button drawing
+- `src/cchess_app/ui_controls.py`: Tk controls + move lists
+- `src/cchess_app/pieces.py`: piece class + board initialization
+- `src/cchess_app/utils.py`: board geometry helpers
+- `src/cchess_app/voice.py`: speech input handlers
+- `src/cchess_app/ai.py`: AI move logic
+- `src/cchess_app/dependencies.py`: optional imports for AI/voice
+- `src/cchess_app/app.py`: entrypoint
+- `src/XQlightPy/`: local engine dependency (copied from original project)
+
+## Setup
+From the project root:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+Optional extras:
+
+```powershell
+pip install -e ".[ai]"
+pip install -e ".[voice]"
+```
+
+## Run
+```powershell
+cchess
+```
+
+Or run directly:
+
+```powershell
+python -m cchess_app
+```
+
+## Cleanup
+From the project root:
+
+```powershell
+deactivate
+Remove-Item -Recurse -Force .venv
+Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+```
+
+## Notes
+- The AI engine is provided by the local `XQlightPy` package included with this project.
+- Game record files should be plain text with moves formatted as in the original app.
